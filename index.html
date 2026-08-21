@@ -1,0 +1,793 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Groundtruth — sourced, not guessed</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Big+Shoulders+Display:wght@600;700;800&family=Public+Sans:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --ink:#1B2E28;
+    --ink-2:#142019;
+    --surface:#23392F;
+    --surface-2:#2C4238;
+    --surface-3:#35503F;
+    --brass:#B08A4E;
+    --brass-dim:#8C6D3D;
+    --safe:#7BA07F;
+    --caution:#C79A4B;
+    --paper:#E9E1CE;
+    --muted:#93A08D;
+    --hair: rgba(233,225,206,0.10);
+    --shadow: rgba(0,0,0,0.5);
+    --font-display:"Big Shoulders Display", sans-serif;
+    --font-body:"Public Sans", sans-serif;
+    --font-mono:"IBM Plex Mono", monospace;
+  }
+  *{box-sizing:border-box; margin:0; padding:0;}
+  html{scroll-behavior:smooth;}
+  body{
+    background: var(--ink);
+    color: var(--paper);
+    font-family: var(--font-body);
+    line-height:1.6;
+  }
+
+  ::selection{ background: var(--brass); color: var(--ink); }
+
+  .wrap{ max-width:760px; margin:0 auto; padding: 0 24px; }
+  .wrap-wide{ max-width:1040px; margin:0 auto; padding: 0 24px; }
+
+  /* ---------- meta / hero ---------- */
+  .meta-bar{
+    padding: 28px 0 0;
+    font-family: var(--font-mono);
+    font-size:11px;
+    color: var(--muted);
+    display:flex; justify-content:space-between; align-items:center;
+    letter-spacing:.02em;
+  }
+  .meta-bar .status-dot{ color: var(--safe); margin-right:6px; }
+
+  .byline{
+    font-family: var(--font-mono);
+    font-size:12px;
+    color: var(--muted);
+    padding: 18px 0 0;
+  }
+
+  .hero{ padding: 26px 0 44px; }
+  .hero .tagline{
+    font-family: var(--font-body);
+    font-style:italic;
+    font-size:16px;
+    color: var(--muted);
+    margin-bottom:20px;
+  }
+  .hero h1{
+    font-family: var(--font-display);
+    font-weight:700;
+    font-size:64px;
+    line-height:0.95;
+    letter-spacing:-0.01em;
+    text-transform:uppercase;
+    margin-bottom:24px;
+  }
+  .hero h1 .dot{ color: var(--brass); }
+  .hero .lede{
+    font-size:19px;
+    line-height:1.55;
+    font-weight:400;
+    color: var(--paper);
+    max-width:58ch;
+  }
+  .hero .lede b{ color: var(--brass); font-weight:600; }
+
+  /* ---------- prose sections ---------- */
+  .section{ padding: 56px 0; border-top:1px solid var(--hair); }
+  .section.no-border{ border-top:none; }
+  .section p{ font-size:15.5px; color: var(--paper); margin-bottom:16px; max-width:64ch; }
+  .section p.muted{ color: var(--muted); }
+  .section p b{ color: var(--brass); }
+  .section h2{
+    font-family: var(--font-display);
+    font-size:34px;
+    text-transform:uppercase;
+    line-height:1.05;
+    margin-bottom:20px;
+    max-width:20ch;
+  }
+  .eyebrow-sm{
+    font-family: var(--font-mono);
+    font-size:10.5px;
+    text-transform:uppercase;
+    letter-spacing:.12em;
+    color: var(--muted);
+    margin-bottom:14px;
+  }
+
+  /* ---------- try-it prompt + embedded demo ---------- */
+  .try-it{
+    text-align:center;
+    font-family: var(--font-mono);
+    font-size:11.5px;
+    text-transform:uppercase;
+    letter-spacing:.1em;
+    color: var(--brass);
+    margin: 8px 0 26px;
+  }
+  .demo-frame{
+    display:flex;
+    justify-content:center;
+    padding: 10px 0 10px;
+  }
+
+  /* ---------- laws grid ---------- */
+  .laws-grid{
+    display:grid;
+    grid-template-columns:1fr 1fr;
+    gap:1px;
+    background: var(--hair);
+    border:1px solid var(--hair);
+    margin-top:8px;
+  }
+  .law-cell{
+    background: var(--ink);
+    padding:26px 24px;
+  }
+  .law-cell .lnum{
+    font-family: var(--font-mono);
+    font-size:10.5px;
+    color: var(--brass);
+    letter-spacing:.1em;
+    margin-bottom:10px;
+  }
+  .law-cell h3{
+    font-family: var(--font-display);
+    font-size:20px;
+    text-transform:uppercase;
+    margin-bottom:8px;
+  }
+  .law-cell p{
+    font-size:13px; color: var(--muted); line-height:1.55; margin:0;
+  }
+
+  /* ---------- flow line ---------- */
+  .flow-line{
+    font-family: var(--font-mono);
+    font-size:12px;
+    color: var(--paper);
+    background: var(--surface);
+    border:1px solid var(--hair);
+    border-radius:10px;
+    padding:18px 20px;
+    display:flex;
+    flex-wrap:wrap;
+    align-items:center;
+    gap:8px;
+    margin: 22px 0;
+  }
+  .flow-line .seg{ color: var(--paper); }
+  .flow-line .arrow{ color: var(--brass); }
+  .flow-line .tag{ color: var(--muted); font-size:11px; }
+
+  /* ---------- ranked lists ---------- */
+  .ranked{ margin-top:10px; }
+  .ranked-item{
+    padding: 22px 0;
+    border-top:1px solid var(--hair);
+  }
+  .ranked-item:first-child{ border-top:none; }
+  .ranked-item .rk-tag{
+    font-family: var(--font-mono);
+    font-size:11px;
+    text-transform:uppercase;
+    letter-spacing:.08em;
+    color: var(--brass);
+    margin-bottom:8px;
+  }
+  .ranked-item h3{
+    font-family: var(--font-display);
+    font-size:21px;
+    text-transform:uppercase;
+    margin-bottom:8px;
+  }
+  .ranked-item p{ font-size:14px; color: var(--muted); max-width:62ch; margin:0; }
+
+  .unvalidated li{
+    list-style:none;
+    padding: 16px 0;
+    border-top:1px solid var(--hair);
+    font-size:14px;
+    color: var(--paper);
+    line-height:1.6;
+  }
+  .unvalidated li:first-child{ border-top:none; }
+  .unvalidated li b{ color: var(--brass); }
+
+  /* ---------- name/palette rationale card ---------- */
+  .swatch-row{
+    display:flex; gap:10px; margin: 18px 0 6px; flex-wrap:wrap;
+  }
+  .swatch{
+    width:64px;
+    text-align:center;
+  }
+  .swatch .chip{
+    width:100%; height:44px; border-radius:8px; border:1px solid var(--hair); margin-bottom:6px;
+  }
+  .swatch .lb{ font-family: var(--font-mono); font-size:8.5px; color: var(--muted); text-transform:uppercase; }
+
+  /* ---------- closing ---------- */
+  .closing{
+    padding: 64px 0 34px;
+    border-top:1px solid var(--hair);
+    text-align:left;
+  }
+  .closing h2{
+    font-family: var(--font-display);
+    font-size:36px;
+    text-transform:uppercase;
+    line-height:1.05;
+    margin-bottom:18px;
+    max-width:22ch;
+  }
+  .closing p{ max-width:60ch; margin-bottom:26px; color: var(--muted); font-size:15px; }
+  .ask-links{
+    display:flex; gap:28px; align-items:center; flex-wrap:wrap;
+  }
+  .ask-links a, .ask-links .link-btn{
+    all:unset;
+    cursor:pointer;
+    font-family: var(--font-body);
+    font-size:14.5px;
+    font-weight:600;
+    color: var(--brass);
+    text-decoration:underline;
+    text-underline-offset:4px;
+    text-decoration-color: rgba(176,138,78,0.4);
+  }
+  .ask-links a:hover, .ask-links .link-btn:hover{ text-decoration-color: var(--brass); }
+
+  footer{
+    border-top:1px solid var(--hair);
+    padding: 22px 0 50px;
+    font-family: var(--font-mono);
+    font-size:10.5px;
+    color: var(--muted);
+    display:flex; justify-content:space-between; flex-wrap:wrap; gap:10px;
+  }
+
+  @media (max-width:640px){
+    .hero h1{ font-size:52px; }
+    .laws-grid{ grid-template-columns:1fr; }
+  }
+
+  /* ============================================================ */
+  /* EMBEDDED APP DEMO (Trailhead palette)                        */
+  /* ============================================================ */
+  .app-embed *{ box-sizing:border-box; }
+  .phone{
+    width:340px;
+    height:680px;
+    background: linear-gradient(180deg, #2a4136, var(--ink-2));
+    border-radius:40px;
+    border:1px solid var(--hair);
+    box-shadow: 0 40px 80px -28px var(--shadow), 0 0 0 8px var(--ink-2), 0 0 0 9px var(--hair);
+    padding:12px;
+    position:relative;
+  }
+  .notch{
+    position:absolute; top:12px; left:50%; transform:translateX(-50%);
+    width:110px; height:20px; background: var(--ink-2); border-radius:12px; z-index:5;
+  }
+  .screen{
+    width:100%; height:100%;
+    background: var(--ink);
+    border-radius:28px;
+    overflow:hidden;
+    position:relative;
+    display:flex; flex-direction:column;
+  }
+  .status-row{
+    display:flex; justify-content:space-between;
+    padding:14px 20px 4px;
+    font-family: var(--font-mono); font-size:10.5px; color: var(--muted);
+  }
+  .panel{ display:none; flex-direction:column; flex:1; min-height:0; animation: fadein .3s ease; }
+  .panel.active{ display:flex; }
+  @keyframes fadein{ from{opacity:0; transform:translateY(6px);} to{opacity:1; transform:none;} }
+  .panel-scroll{ flex:1; overflow-y:auto; padding: 4px 18px 18px; }
+  .panel-scroll::-webkit-scrollbar{ width:0; }
+  .app-header{ padding: 4px 18px 12px; }
+  .app-header .greet{
+    font-family: var(--font-mono); font-size:10px; letter-spacing:.1em; text-transform:uppercase; color: var(--brass); margin-bottom:5px;
+  }
+  .app-header h2{ font-family: var(--font-display); font-size:23px; text-transform:uppercase; }
+  .search-box{
+    display:flex; align-items:center; gap:9px;
+    background: var(--surface-2); border:1px solid var(--hair); border-radius:12px;
+    padding:11px 14px; margin-top:12px;
+  }
+  .search-box input{ all:unset; flex:1; font-family: var(--font-body); font-size:12.5px; color: var(--paper); }
+  .search-icon{ color: var(--muted); font-size:13px; }
+  .nosignup{ font-family: var(--font-mono); font-size:9.5px; color: var(--safe); margin-top:9px; }
+  .section-label{
+    font-family: var(--font-mono); font-size:10px; text-transform:uppercase; letter-spacing:.1em; color: var(--muted); margin:16px 0 8px;
+  }
+  .result-card{ background: var(--surface); border:1px solid var(--hair); border-radius:16px; padding:16px; margin-bottom:14px; }
+  .result-top{ display:flex; justify-content:space-between; align-items:flex-start; margin-bottom:5px; }
+  .result-place{ font-family: var(--font-display); font-size:18px; font-weight:700; text-transform:uppercase; }
+  .result-sub{ font-size:11px; color: var(--muted); margin-top:2px; }
+  .badge{ font-family: var(--font-mono); font-size:9.5px; padding:4px 8px; border-radius:99px; white-space:nowrap; text-transform:uppercase; }
+  .badge.safe{ background:rgba(123,160,127,0.15); color: var(--safe); border:1px solid rgba(123,160,127,0.35); }
+  .badge.caution{ background:rgba(199,154,75,0.15); color: var(--caution); border:1px solid rgba(199,154,75,0.35); }
+  .context-line{ font-size:12.5px; color: var(--paper); line-height:1.55; margin:10px 0 12px; }
+  .context-line b{ color: var(--brass); }
+  .dial-label{ display:flex; justify-content:space-between; font-family: var(--font-mono); font-size:9px; color: var(--muted); margin-bottom:5px; }
+  .dial{
+    position:relative; height:30px; border-radius:7px; overflow:hidden;
+    background: linear-gradient(90deg, #17251f 0%, #17251f 22%, #3d4a35 30%, #8a6d3c 37%, #b08a4e 44%, #d9c193 50%, #b08a4e 56%, #8a6d3c 63%, #3d4a35 70%, #17251f 78%, #17251f 100%);
+  }
+  .dial-caution{ position:absolute; top:0; bottom:0; left:87.5%; width:12.5%; background: repeating-linear-gradient(45deg, rgba(199,154,75,0.5) 0 4px, rgba(20,32,25,0.5) 4px 8px); border-left:1px solid var(--caution); }
+  .dial-now{ position:absolute; top:-4px; bottom:-4px; width:2px; background: var(--paper); }
+  .dial-now::after{ content:"NOW"; position:absolute; top:-14px; left:50%; transform:translateX(-50%); font-family: var(--font-mono); font-size:7.5px; color: var(--paper); }
+  .dial-ticks{ display:flex; justify-content:space-between; font-family: var(--font-mono); font-size:8px; color: var(--muted); margin-top:5px; }
+  .source-line{ font-family: var(--font-mono); font-size:9px; color: var(--muted); margin-top:12px; padding-top:10px; border-top:1px solid var(--hair); }
+  .route-input{ background: var(--surface-2); border:1px solid var(--hair); border-radius:12px; padding:10px 14px; margin-top:12px; display:flex; align-items:center; gap:7px; }
+  .route-input input{ all:unset; font-family: var(--font-mono); font-size:11px; color: var(--paper); width:36%; }
+  .route-input .dot{ width:6px; height:6px; border-radius:50%; background: var(--brass); flex-shrink:0; }
+  .route-input .dot.end{ background: var(--safe); }
+  .route-arrow{ color:var(--muted); font-size:10px; }
+  .header-actions{ display:flex; gap:7px; margin-top:11px; }
+  .btn-primary{ all:unset; cursor:pointer; display:inline-flex; align-items:center; justify-content:center; background: var(--brass); color: var(--ink); font-family: var(--font-mono); font-size:10.5px; text-transform:uppercase; font-weight:600; border-radius:9px; padding:9px 12px; }
+  .icon-btn{ all:unset; cursor:pointer; display:flex; align-items:center; gap:5px; background: var(--surface-2); border:1px solid var(--hair); border-radius:9px; padding:9px 11px; font-family: var(--font-mono); font-size:10px; text-transform:uppercase; color: var(--paper); }
+  .stop-card{ display:flex; gap:11px; padding:12px 0; border-bottom:1px solid var(--hair); }
+  .stop-time{ font-family: var(--font-mono); font-size:10px; color: var(--brass); width:52px; flex-shrink:0; padding-top:2px; }
+  .stop-name{ font-family: var(--font-display); font-size:15px; font-weight:700; text-transform:uppercase; }
+  .stop-note{ font-size:11px; color: var(--muted); line-height:1.5; margin-top:3px; }
+  .stop-note.caution{ color: var(--caution); }
+  .stop-note.safe{ color: var(--safe); }
+  .stop-cta{ all:unset; cursor:pointer; display:inline-block; margin-top:5px; font-family: var(--font-mono); font-size:9.5px; text-transform:uppercase; color: var(--brass); }
+  .drill-header{ display:flex; align-items:center; gap:9px; padding: 4px 18px 2px; }
+  .back-btn{ all:unset; cursor:pointer; width:28px; height:28px; display:flex; align-items:center; justify-content:center; border-radius:8px; background: var(--surface-2); border:1px solid var(--hair); color: var(--paper); font-size:13px; }
+  .stay-card{ display:flex; gap:11px; background: var(--surface); border:1px solid var(--hair); border-radius:14px; padding:13px; margin-bottom:11px; }
+  .stay-thumb{ width:50px; height:50px; border-radius:9px; background: linear-gradient(135deg, var(--surface-3), var(--surface-2)); flex-shrink:0; display:flex; align-items:center; justify-content:center; font-family: var(--font-display); font-size:18px; color: var(--brass-dim); }
+  .stay-top{ display:flex; justify-content:space-between; align-items:baseline; gap:7px; }
+  .stay-name{ font-family: var(--font-display); font-size:14px; font-weight:700; text-transform:uppercase; }
+  .stay-rating, .stay-dist{ font-family: var(--font-mono); font-size:10px; color: var(--brass); white-space:nowrap; }
+  .stay-meta{ font-size:10.5px; color: var(--muted); margin-top:2px; }
+  .stay-cta{ margin-top:7px; display:inline-flex; font-family: var(--font-mono); font-size:9.5px; text-transform:uppercase; color: var(--brass); }
+  .avail-badge{ font-family: var(--font-mono); font-size:8.5px; text-transform:uppercase; padding:2px 6px; border-radius:5px; display:inline-block; margin-top:5px; }
+  .avail-badge.good{ background:rgba(123,160,127,0.12); color:var(--safe); }
+  .avail-badge.tight{ background:rgba(199,154,75,0.12); color:var(--brass); }
+  .chip-row{ display:flex; gap:7px; margin:12px 0 4px; flex-wrap:wrap; }
+  .chip{ font-family: var(--font-mono); font-size:9.5px; text-transform:uppercase; padding:5px 11px; border-radius:99px; border:1px solid var(--hair); color: var(--muted); cursor:pointer; }
+  .chip.on{ color: var(--ink); background: var(--brass); border-color: var(--brass); }
+  .saved-card{ display:flex; justify-content:space-between; align-items:center; background: var(--surface); border:1px solid var(--hair); border-radius:14px; padding:14px; margin-bottom:11px; }
+  .saved-route{ font-family: var(--font-display); font-size:15px; font-weight:700; text-transform:uppercase; }
+  .saved-meta{ font-family: var(--font-mono); font-size:9.5px; color: var(--muted); margin-top:3px; }
+  .saved-open{ font-family: var(--font-mono); font-size:9.5px; color: var(--brass); text-transform:uppercase; }
+  .empty-state{ text-align:center; padding: 34px 18px; color: var(--muted); font-size:11.5px; line-height:1.6; }
+  .disclosure-banner{ margin:0 18px 10px; background: rgba(176,138,78,0.08); border:1px solid rgba(176,138,78,0.25); border-radius:9px; padding:8px 11px; font-size:9.5px; line-height:1.45; color: var(--muted); }
+  .disclosure-banner b{ color: var(--brass); }
+  .tabbar{ display:flex; border-top:1px solid var(--hair); background: var(--ink-2); padding: 9px 6px 14px; }
+  .tab{ all:unset; flex:1; display:flex; flex-direction:column; align-items:center; gap:4px; cursor:pointer; color: var(--muted); padding:5px 0; border-radius:9px; }
+  .tab .ic{ font-size:15px; }
+  .tab .lb{ font-family: var(--font-mono); font-size:8.5px; text-transform:uppercase; }
+  .tab.active{ color: var(--brass); }
+  .modal-overlay{ position:absolute; inset:0; background: rgba(10,16,13,0.72); display:none; align-items:flex-end; z-index:20; border-radius:28px; }
+  .modal-overlay.open{ display:flex; }
+  .modal-sheet{ width:100%; background: var(--surface); border-top:1px solid var(--hair); border-radius:20px 20px 0 0; padding:20px 20px 24px; position:relative; }
+  .modal-title{ font-family: var(--font-display); font-size:20px; text-transform:uppercase; margin-bottom:5px; }
+  .modal-sub{ font-size:11.5px; color: var(--muted); margin-bottom:16px; }
+  .modal-close{ all:unset; cursor:pointer; position:absolute; top:16px; right:16px; width:24px; height:24px; display:flex; align-items:center; justify-content:center; border-radius:50%; background: var(--surface-2); color: var(--muted); font-size:11px; }
+  .plan-row{ display:flex; justify-content:space-between; padding:10px 0; border-bottom:1px solid var(--hair); font-size:12px; }
+  .plan-row .pcheck{ color: var(--safe); }
+  .btn-secondary{ all:unset; cursor:pointer; display:inline-flex; align-items:center; justify-content:center; border:1px solid var(--hair); color: var(--muted); font-family: var(--font-mono); font-size:10.5px; text-transform:uppercase; border-radius:9px; padding:10px 14px; }
+</style>
+</head>
+<body>
+
+<div class="wrap">
+  <div class="meta-bar">
+    <span><span class="status-dot">●</span>Interactive prototype · not working software</span>
+    <span>Aug 2026</span>
+  </div>
+
+  <div class="byline">Trisha Balakrishnan · AI Engineer</div>
+
+  <div class="hero">
+    <div class="tagline">The safety companion nobody thought to build calm</div>
+    <h1>Ground<br>truth<span class="dot">.</span></h1>
+    <p class="lede">Review sites optimize for entertainment. Crime-map apps optimize for fear. Neither one is built to be checked at 9pm, on an unfamiliar exit ramp, in four seconds, without an account. <b>Groundtruth is.</b></p>
+  </div>
+</div>
+
+<div class="wrap">
+  <div class="section no-border">
+    <div class="eyebrow-sm">Try it</div>
+    <h2>Four screens, one honest number each</h2>
+    <p class="muted">Everything below runs on local mock data — search a city, plan a route, filter a hotel list, hit the paywall. Nothing here calls a real server yet.</p>
+  </div>
+</div>
+
+<div class="try-it">↓ live in this page ↓</div>
+<div class="demo-frame app-embed">
+  <div class="phone">
+    <div class="notch"></div>
+    <div class="screen">
+      <div class="status-row"><span>9:41</span><span>GT</span></div>
+
+      <!-- QUICK CHECK -->
+      <div class="panel active" id="quickcheck">
+        <div class="app-header">
+          <div class="greet">Quick check</div>
+          <h2>Where are<br>you headed?</h2>
+          <div class="search-box">
+            <span class="search-icon">⌕</span>
+            <input type="text" id="qcInput" placeholder="Try “wicker park” or “iowa city”" value="Wicker Park, Chicago, IL">
+          </div>
+          <div class="nosignup">No account needed for a single check</div>
+        </div>
+        <div class="panel-scroll">
+          <div class="section-label">Result</div>
+          <div class="result-card">
+            <div class="result-top">
+              <div>
+                <div class="result-place" id="qcPlace">Wicker Park</div>
+                <div class="result-sub" id="qcSub">Chicago, IL · checked just now</div>
+              </div>
+              <span class="badge safe" id="qcBadge">Generally safe</span>
+            </div>
+            <div class="context-line" id="qcContext">Low incident density in daylight hours. <b>Exercise more caution after 9pm</b>, particularly near the Blue Line stop.</div>
+            <div class="dial-label"><span>Risk context by hour</span><span>24H</span></div>
+            <div class="dial"><div class="dial-caution"></div><div class="dial-now" id="qcDialNow" style="left:38%;"></div></div>
+            <div class="dial-ticks"><span>12A</span><span>6A</span><span>12P</span><span>6P</span><span>12A</span></div>
+            <div class="source-line" id="qcSource">Source: FBI Crime Data API + Chicago Open Data · updated weekly</div>
+          </div>
+          <div class="disclosure-banner"><b>Not an emergency service.</b> For anything urgent, dial 911. This is a planning tool.</div>
+        </div>
+      </div>
+
+      <!-- TRIP MODE -->
+      <div class="panel" id="trip">
+        <div class="app-header">
+          <div class="greet">Trip mode</div>
+          <h2 id="tripTitle">I‑80 West</h2>
+          <div class="route-input">
+            <span class="dot"></span><input type="text" id="tripFrom" value="Chicago, IL">
+            <span class="route-arrow">→</span>
+            <span class="dot end"></span><input type="text" id="tripTo" value="Omaha, NE">
+          </div>
+          <div class="header-actions">
+            <button class="btn-primary" style="flex:1;" onclick="planTrip()">Plan route</button>
+            <button class="icon-btn" onclick="saveCurrentTrip()">☆ Save</button>
+            <button class="icon-btn" onclick="openShare()">↗ Share</button>
+          </div>
+        </div>
+        <div class="panel-scroll">
+          <div class="section-label">Stopovers, timed to your ETA</div>
+          <div id="stopList">
+            <div class="stop-card">
+              <div class="stop-time">7:15 PM</div>
+              <div><div class="stop-name">Joliet, IL</div><div class="stop-note safe">Arriving before dusk · well-lit rest area, 24hr staffed</div></div>
+            </div>
+            <div class="stop-card">
+              <div class="stop-time">9:40 PM</div>
+              <div><div class="stop-name">Iowa City, IA</div><div class="stop-note caution">Arriving after dark · unlit rest stop off Exit 244, better-lit option 4 mi ahead</div>
+              <button class="stop-cta" onclick="openStays('Iowa City, IA')">View stays near this stop →</button></div>
+            </div>
+            <div class="stop-card" style="border-bottom:none;">
+              <div class="stop-time">3:20 AM</div>
+              <div><div class="stop-name">Omaha, NE</div><div class="stop-note safe">Destination · low overnight incident rate downtown</div></div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- STAYS DRILL -->
+      <div class="panel" id="stays">
+        <div class="drill-header">
+          <button class="back-btn" onclick="closeStays()">←</button>
+          <div><div class="greet" style="margin-bottom:2px;">Stays near</div><h2 style="font-size:19px;" id="staysTitle">Iowa City, IA</h2></div>
+        </div>
+        <div class="panel-scroll">
+          <div class="stay-card"><div class="stay-thumb">A</div><div><div class="stay-top"><span class="stay-name">Amana Colonies Inn</span><span class="stay-rating">4.6 ★</span></div><div class="stay-meta">1.2 mi off route · well-lit lot, staffed overnight</div><span class="stay-cta">View on Booking.com →</span></div></div>
+          <div class="stay-card"><div class="stay-thumb">R</div><div><div class="stay-top"><span class="stay-name">Riverside Suites</span><span class="stay-rating">4.3 ★</span></div><div class="stay-meta">0.4 mi off route · moderate lighting</div><span class="stay-cta">View on Hotels.com →</span></div></div>
+        </div>
+      </div>
+
+      <!-- NEAR ME -->
+      <div class="panel" id="nearme">
+        <div class="app-header">
+          <div class="greet">Live · unplanned stop</div>
+          <h2>Need a room<br>tonight?</h2>
+          <div class="chip-row" id="nmChips">
+            <span class="chip on" onclick="filterNearMe(0, this)">Ahead of me</span>
+            <span class="chip" onclick="filterNearMe(10, this)">+10 mi off-route</span>
+            <span class="chip" onclick="filterNearMe(25, this)">+25 mi off-route</span>
+          </div>
+        </div>
+        <div class="panel-scroll">
+          <div class="section-label">Sorted by how soon you'll reach them</div>
+          <div id="nmList">
+            <div class="stay-card" data-offroute="0"><div class="stay-thumb">C</div><div><div class="stay-top"><span class="stay-name">Cedar Rapids Wayside Inn</span><span class="stay-dist">18 mi · 21 min</span></div><div class="stay-meta">Right off Exit 267 · staffed 24hr</div><span class="avail-badge good">Usually available</span><br><span class="stay-cta">Book on Booking.com →</span></div></div>
+            <div class="stay-card" data-offroute="8"><div class="stay-thumb">A</div><div><div class="stay-top"><span class="stay-name">Amana Colonies Inn</span><span class="stay-dist">39 mi · 44 min</span></div><div class="stay-meta">8 mi off route · higher rated</div><span class="avail-badge good">Usually available</span><br><span class="stay-cta">Book on Expedia →</span></div></div>
+            <div class="stay-card" data-offroute="22"><div class="stay-thumb">L</div><div><div class="stay-top"><span class="stay-name">Lake Shore Lodge</span><span class="stay-dist">51 mi · 58 min</span></div><div class="stay-meta">22 mi off route · worth it only if you have time</div><span class="avail-badge good">Usually available</span><br><span class="stay-cta">Book on Booking.com →</span></div></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- SAVED -->
+      <div class="panel" id="saved">
+        <div class="app-header"><div class="greet">Saved</div><h2>Your trips</h2></div>
+        <div class="panel-scroll" id="savedList"></div>
+      </div>
+
+      <!-- SHARE MODAL -->
+      <div class="modal-overlay" id="shareModal">
+        <div class="modal-sheet">
+          <button class="modal-close" onclick="closeModal('shareModal')">✕</button>
+          <div class="modal-title">Share my trip</div>
+          <div class="modal-sub">Send a live link to one contact. They're notified if you go quiet past your ETA.</div>
+          <div style="font-family:var(--font-mono); font-size:10.5px; background:var(--surface-2); border:1px solid var(--hair); border-radius:10px; padding:11px 13px;">🔗 groundtruth.app/t/8f2a91</div>
+        </div>
+      </div>
+
+      <!-- PAYWALL MODAL -->
+      <div class="modal-overlay" id="paywallModal">
+        <div class="modal-sheet">
+          <button class="modal-close" onclick="closeModal('paywallModal')">✕</button>
+          <div class="modal-title">Go Premium</div>
+          <div class="modal-sub">$6/mo. Cancel anytime.</div>
+          <div class="plan-row"><span>Share My Trip, live</span><span class="pcheck">✓</span></div>
+          <div class="plan-row"><span>Unlimited saved trips</span><span class="pcheck">✓</span></div>
+          <div class="plan-row" style="border-bottom:none;"><span>Offline route downloads</span><span class="pcheck">✓</span></div>
+          <div class="header-actions" style="margin-top:16px;">
+            <button class="btn-primary" style="flex:1;" onclick="upgradeToPremium()">Upgrade — $6/mo</button>
+            <button class="btn-secondary" onclick="closeModal('paywallModal')">Maybe later</button>
+          </div>
+        </div>
+      </div>
+
+      <div class="tabbar">
+        <button class="tab active" data-target="quickcheck"><span class="ic">⌕</span><span class="lb">Check</span></button>
+        <button class="tab" data-target="trip"><span class="ic">⟿</span><span class="lb">Trip</span></button>
+        <button class="tab" data-target="nearme"><span class="ic">◎</span><span class="lb">Near Me</span></button>
+        <button class="tab" data-target="saved"><span class="ic">☆</span><span class="lb">Saved</span></button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="wrap">
+
+  <div class="section">
+    <div class="eyebrow-sm">The design constraint</div>
+    <h2>The name is the specification</h2>
+    <p>Groundtruth is borrowed from machine learning — the verified, ground-level fact a model is trained against, not a prediction and not a vibe. That's the bar for every number this product shows.</p>
+    <p class="muted">A palette can say the same thing before a word of copy loads. Forest, brass, and sage read as <b>prepared</b>, not alarmed — closer to a trail map than a crime map.</p>
+    <div class="swatch-row">
+      <div class="swatch"><div class="chip" style="background:#1B2E28;"></div><div class="lb">Pine</div></div>
+      <div class="swatch"><div class="chip" style="background:#B08A4E;"></div><div class="lb">Brass</div></div>
+      <div class="swatch"><div class="chip" style="background:#7BA07F;"></div><div class="lb">Sage / safe</div></div>
+      <div class="swatch"><div class="chip" style="background:#C79A4B;"></div><div class="lb">Ochre / caution</div></div>
+      <div class="swatch"><div class="chip" style="background:#E9E1CE; border-color:#00000022;"></div><div class="lb">Stone / text</div></div>
+    </div>
+
+    <div class="laws-grid">
+      <div class="law-cell">
+        <div class="lnum">LAW 01</div>
+        <h3>Sourced, not guessed</h3>
+        <p>Every score traces to a named public dataset with an update timestamp. If there's no source, there's no score — just an honest "no data yet."</p>
+      </div>
+      <div class="law-cell">
+        <div class="lnum">LAW 02</div>
+        <h3>Calm, not alarmed</h3>
+        <p>Ochre and sage, never red. Context — "more caution after 9pm" — never a verdict like "dangerous."</p>
+      </div>
+      <div class="law-cell">
+        <div class="lnum">LAW 03</div>
+        <h3>Useful before urgent</h3>
+        <p>Value lands in Quick Check and Trip Mode, before you're already somewhere uncomfortable — not a post-incident report.</p>
+      </div>
+      <div class="law-cell">
+        <div class="lnum">LAW 04</div>
+        <h3>Honest about its limits</h3>
+        <p>"No data yet" is a real, visible state. Gaps in coverage aren't filled with a plausible-looking number.</p>
+      </div>
+    </div>
+  </div>
+
+  <div class="section">
+    <div class="eyebrow-sm">Why the data compounds</div>
+    <h2>The loop nobody else is running</h2>
+    <p>A crime-map overlay is copyable in a quarter. Millions of location queries, each timestamped and joined to whether the trip actually got booked, are not.</p>
+    <div class="flow-line">
+      <span class="seg">Quick Check query</span><span class="arrow">→</span>
+      <span class="seg">mapped to coverage gap</span><span class="arrow">→</span>
+      <span class="seg">prioritized in next city's data pull</span><span class="arrow">→</span>
+      <span class="seg">richer Trip Mode, next trip</span>
+      <span class="tag">more usage → more coverage → wider lead</span>
+    </div>
+    <p class="muted">The free tier isn't just acquisition — every unanswered "no data yet" is a labelled demand signal for which city to onboard next.</p>
+  </div>
+
+  <div class="section">
+    <div class="eyebrow-sm">What you'd actually own</div>
+    <h2>Three hard problems, ranked</h2>
+    <div class="ranked">
+      <div class="ranked-item">
+        <div class="rk-tag">01 · hardest</div>
+        <h3>Schema normalization at the edge of chaos</h3>
+        <p>Thousands of city and county open-data portals, each with a different schema, update cadence, and reporting bias. Turning that into one consistent geospatial signal — without importing the uneven reporting rates as if they were uneven actual risk — is the real moat, not the UI.</p>
+      </div>
+      <div class="ranked-item">
+        <div class="rk-tag">02</div>
+        <h3>Calibrating "context" instead of a score</h3>
+        <p>The qualitative labels have to hold across cities with wildly different baseline rates, without either scaring people out of visiting a normal place or falsely reassuring them about a genuinely rough stretch of road.</p>
+      </div>
+      <div class="ranked-item">
+        <div class="rk-tag">03</div>
+        <h3>Cheap, live ETA-to-risk matching</h3>
+        <p>Matching a moving route to hourly risk windows, per stopover, on a multi-day trip — without a live API call on every keystroke. This is the same cost-vs-freshness tradeoff every real-time product eventually has to solve.</p>
+      </div>
+    </div>
+  </div>
+
+  <div class="section">
+    <div class="eyebrow-sm">Before you get excited</div>
+    <h2>What I don't know yet</h2>
+    <p class="muted">Ranked by how badly it would hurt if it's wrong.</p>
+    <ul class="ranked unvalidated">
+      <li><b>Whether "no data yet" costs more retention than a rough approximate score would.</b> The honesty in Law 04 is a bet that trust compounds faster than coverage gaps repel people. Unmeasured.</li>
+      <li><b>Whether affiliate revenue funds the free tier, or B2B licensing has to carry it.</b> Booking-platform commissions are real but thin; the model may need fleets, insurers, or corporate travel from day one, not later.</li>
+      <li><b>Whether people check before departure or only reactively mid-trip.</b> Changes whether Quick Check or Trip Mode is the true front door — and which one deserves the marketing budget.</li>
+      <li><b>Whether Share My Trip reads as safety companion or surveillance</b> to the exact audience it's meant to protect. The framing in the paywall matters more than the feature.</li>
+      <li><b>Whether open-data coverage is uneven enough that early users hit "no data yet" too often to stick around</b> before the loop in the section above has time to work.</li>
+    </ul>
+  </div>
+
+  <div class="closing">
+    <div class="eyebrow-sm">The ask</div>
+    <h2>Feedback, or a technical sounding board</h2>
+    <p>An interactive prototype with mock data, a naming decision, and a palette that says "prepared" instead of "afraid." Real infrastructure — Supabase/PostGIS, live routing, the actual crime-data ingestion pipeline — is the next phase, not this one. If you've built anything in this space, or can poke a hole in the coverage-gap assumption above, I'd rather hear it now.</p>
+    <div class="ask-links">
+      <a href="https://www.linkedin.com/in/trishabalakrishnan/" target="_blank" rel="noopener">LinkedIn</a>
+      <a href="https://github.com/trishabala" target="_blank" rel="noopener">GitHub</a>
+      <button class="link-btn" onclick="document.querySelector('.demo-frame').scrollIntoView({behavior:'smooth'})">Back to the prototype ↑</button>
+    </div>
+  </div>
+
+  <footer>
+    <span>Groundtruth · Chennai</span>
+    <span>Interactive mockup. Simulated search results and availability — no live data.</span>
+  </footer>
+</div>
+
+<script>
+  const allTargets = ['quickcheck','trip','nearme','saved'];
+  function setPanel(target){
+    document.getElementById('stays').classList.remove('active');
+    allTargets.forEach(id => document.getElementById(id).classList.toggle('active', id === target));
+    document.querySelectorAll('.tab').forEach(t => t.classList.toggle('active', t.dataset.target === target));
+    if(target === 'saved') renderSaved();
+  }
+  document.querySelectorAll('.tab').forEach(btn => btn.addEventListener('click', () => setPanel(btn.dataset.target)));
+
+  const mockPlaces = {
+    'wicker park': { place:'Wicker Park', sub:'Chicago, IL', badge:'safe', label:'Generally safe',
+      context:'Low incident density in daylight hours. <b>Exercise more caution after 9pm</b>, particularly near the Blue Line stop.',
+      now:38, source:'FBI Crime Data API + Chicago Open Data · updated weekly' },
+    'omaha': { place:'Downtown Omaha', sub:'Omaha, NE', badge:'safe', label:'Generally safe',
+      context:'Consistently low incident reports across all hours. <b>One of the calmer downtown cores</b> in this data set.',
+      now:52, source:'FBI Crime Data API + Nebraska Open Data · updated weekly' },
+    'iowa city': { place:'Iowa City', sub:'Iowa City, IA', badge:'caution', label:'Use caution after dark',
+      context:'Elevated incident reports near the interstate exits after dark. <b>Stick to lit, main-road routes</b> if arriving late.',
+      now:71, source:'FBI Crime Data API + Iowa Open Data · updated weekly' },
+    'des moines': { place:'Des Moines', sub:'Des Moines, IA', badge:'caution', label:'Mixed by area',
+      context:'Downtown core reads safe; <b>industrial edges near the rail yard</b> see more late-night reports.',
+      now:66, source:'FBI Crime Data API + Iowa Open Data · updated weekly' }
+  };
+  function performQuickCheck(){
+    const q = document.getElementById('qcInput').value.trim().toLowerCase();
+    const match = Object.keys(mockPlaces).find(k => q.includes(k));
+    if(!match){
+      document.getElementById('qcPlace').textContent = q ? document.getElementById('qcInput').value : 'No area entered';
+      document.getElementById('qcSub').textContent = 'No coverage yet for this address';
+      const b = document.getElementById('qcBadge');
+      b.className = 'badge'; b.style.background='var(--surface-2)'; b.style.color='var(--muted)'; b.style.border='1px solid var(--hair)';
+      b.textContent = 'No data yet';
+      document.getElementById('qcContext').innerHTML = 'We haven\'t pulled published crime data for this area yet. Coverage expands city by city — try a nearby major city.';
+      document.getElementById('qcSource').textContent = 'No source available for this query';
+      return;
+    }
+    const d = mockPlaces[match];
+    document.getElementById('qcPlace').textContent = d.place;
+    document.getElementById('qcSub').textContent = d.sub + ' · checked just now';
+    const b = document.getElementById('qcBadge');
+    b.className = 'badge ' + d.badge; b.style = ''; b.textContent = d.label;
+    document.getElementById('qcContext').innerHTML = d.context;
+    document.getElementById('qcDialNow').style.left = d.now + '%';
+    document.getElementById('qcSource').textContent = 'Source: ' + d.source;
+  }
+  document.getElementById('qcInput').addEventListener('keydown', e => { if(e.key === 'Enter') performQuickCheck(); });
+  document.getElementById('qcInput').addEventListener('blur', performQuickCheck);
+
+  const canned = {
+    'chicago|omaha': { title:'I‑80 West', stops:[
+      {time:'7:15 PM', name:'Joliet, IL', note:'Arriving before dusk · well-lit rest area, 24hr staffed', cls:'safe', stays:false},
+      {time:'9:40 PM', name:'Iowa City, IA', note:'Arriving after dark · unlit rest stop off Exit 244, better-lit option 4 mi ahead', cls:'caution', stays:true},
+      {time:'3:20 AM', name:'Omaha, NE', note:'Destination · low overnight incident rate downtown', cls:'safe', stays:false}
+    ]},
+    'austin|dallas': { title:'I‑35 North', stops:[
+      {time:'6:40 PM', name:'Waco, TX', note:'Arriving at dusk · well-lit downtown loop', cls:'safe', stays:false},
+      {time:'8:55 PM', name:'Hillsboro, TX', note:'Small-town stop · limited overnight services off this exit', cls:'caution', stays:true},
+      {time:'10:15 PM', name:'Dallas, TX', note:'Destination · downtown reads calmer after midnight', cls:'safe', stays:false}
+    ]}
+  };
+  function planTrip(){
+    const from = document.getElementById('tripFrom').value.trim();
+    const to = document.getElementById('tripTo').value.trim();
+    const key = (from.toLowerCase().split(',')[0] + '|' + to.toLowerCase().split(',')[0]);
+    let route = Object.entries(canned).find(([k]) => key.includes(k.split('|')[0]) && key.includes(k.split('|')[1]));
+    let data = route ? route[1] : {
+      title: from.split(',')[0] + ' → ' + to.split(',')[0],
+      stops: [
+        {time:'—', name:'Route generated', note:'No stopover data cached for this pair yet — live routing would pull real ETAs here.', cls:'safe', stays:false},
+        {time:'—', name:to.split(',')[0] || 'Destination', note:'Destination', cls:'safe', stays:true}
+      ]
+    };
+    document.getElementById('tripTitle').textContent = data.title;
+    document.getElementById('stopList').innerHTML = data.stops.map((s,i) => `
+      <div class="stop-card" ${i === data.stops.length-1 ? 'style="border-bottom:none;"' : ''}>
+        <div class="stop-time">${s.time}</div>
+        <div><div class="stop-name">${s.name}</div><div class="stop-note ${s.cls}">${s.note}</div>
+        ${s.stays ? `<button class="stop-cta" onclick="openStays('${s.name}')">View stays near this stop →</button>` : ''}</div>
+      </div>`).join('');
+  }
+
+  function openStays(stopName){
+    document.getElementById('staysTitle').textContent = stopName;
+    document.getElementById('trip').classList.remove('active');
+    document.getElementById('stays').classList.add('active');
+  }
+  function closeStays(){
+    document.getElementById('stays').classList.remove('active');
+    document.getElementById('trip').classList.add('active');
+  }
+
+  function filterNearMe(threshold, chipEl){
+    document.querySelectorAll('#nmChips .chip').forEach(c => c.classList.remove('on'));
+    chipEl.classList.add('on');
+    document.querySelectorAll('#nmList .stay-card').forEach(card => {
+      card.style.display = parseFloat(card.dataset.offroute) <= threshold ? 'flex' : 'none';
+    });
+  }
+
+  const state = { premium:false, savedTrips:[{from:'Austin, TX', to:'Dallas, TX', saved:'3 days ago'}] };
+  function renderSaved(){
+    const wrap = document.getElementById('savedList');
+    if(state.savedTrips.length === 0){
+      wrap.innerHTML = '<div class="empty-state">No saved trips yet. Plan one in Trip Mode, then hit Save.</div>';
+      return;
+    }
+    wrap.innerHTML = state.savedTrips.map(t => `
+      <div class="saved-card"><div><div class="saved-route">${t.from} → ${t.to}</div><div class="saved-meta">Saved ${t.saved}</div></div><span class="saved-open">Open →</span></div>`).join('');
+  }
+  function saveCurrentTrip(){
+    if(!state.premium && state.savedTrips.length >= 1){ openPaywall(); return; }
+    const from = document.getElementById('tripFrom').value.trim() || 'Origin';
+    const to = document.getElementById('tripTo').value.trim() || 'Destination';
+    state.savedTrips.unshift({from, to, saved:'just now'});
+    setPanel('saved');
+  }
+  function openShare(){ if(!state.premium){ openPaywall(); return; } document.getElementById('shareModal').classList.add('open'); }
+  function openPaywall(){ document.getElementById('paywallModal').classList.add('open'); }
+  function closeModal(id){ document.getElementById(id).classList.remove('open'); }
+  function upgradeToPremium(){ state.premium = true; closeModal('paywallModal'); }
+</script>
+</body>
+</html>
